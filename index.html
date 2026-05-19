@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROME CRE — PM Task Calendar</title>
+<style>
+:root {
+  --blue: #2d5be3; --blue-light: #eef2ff; --blue-dark: #1e3a8a;
+  --green: #16a34a; --green-light: #f0fdf4;
+  --orange: #ea580c; --orange-light: #fff7ed;
+  --gray: #64748b; --gray-light: #f8fafc;
+  --red: #dc2626; --red-light: #fef2f2;
+  --purple: #7c3aed; --purple-light: #f5f3ff;
+  --bg: #ffffff; --surface: #f8f9fb; --border: #e2e8f0;
+  --text: #1e293b; --text-secondary: #64748b; --text-muted: #94a3b8;
+  --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif; background: var(--surface); color: var(--text); line-height: 1.5; }
+
+.app { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.topbar h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+.topbar h1 span { color: var(--blue); }
+.topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.user-select { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--bg); cursor: pointer; font-weight: 500; }
+
+.setup-banner { background: var(--blue-light); border: 1px solid #c7d2fe; border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; }
+.setup-banner .icon { font-size: 20px; }
+.setup-banner .text { font-size: 13px; color: var(--blue-dark); flex: 1; }
+.setup-banner .text strong { display: block; margin-bottom: 2px; }
+.setup-banner button { background: var(--blue); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.setup-banner .dismiss { background: transparent; color: var(--blue); text-decoration: underline; padding: 0; }
+
+.month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.month-nav h2 { font-size: 18px; font-weight: 700; min-width: 200px; }
+.nav-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.nav-btn:hover { background: var(--blue-light); border-color: var(--blue); }
+.month-nav .spacer { flex: 1; }
+.today-btn { padding: 5px 14px; border-radius: 8px; border: 1px solid var(--blue); background: var(--bg); color: var(--blue); cursor: pointer; font-size: 12px; font-weight: 600; }
+.today-btn:hover { background: var(--blue); color: #fff; }
+.view-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.view-toggle button { padding: 5px 14px; border: none; background: var(--bg); cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.view-toggle button.active { background: var(--blue); color: #fff; }
+
+.filter-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-chip { padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; }
+.filter-chip:hover { border-color: var(--blue); }
+.filter-chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.filter-chip.cat-financial.active { background: var(--blue); border-color: var(--blue); }
+.filter-chip.cat-reporting.active { background: var(--green); border-color: var(--green); }
+.filter-chip.cat-operations.active { background: var(--orange); border-color: var(--orange); }
+.filter-chip.cat-admin.active { background: var(--gray); border-color: var(--gray); }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.cal-header { background: var(--surface); padding: 10px 6px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.cal-cell { background: var(--bg); min-height: 110px; padding: 6px; position: relative; cursor: pointer; transition: background 0.15s; }
+.cal-cell:hover { background: #fafbff; }
+.cal-cell.other { background: var(--surface); }
+.cal-cell.other .day-num { color: var(--text-muted); }
+.cal-cell.today { background: var(--blue-light); }
+.cal-cell.today .day-num { background: var(--blue); color: #fff; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+.cal-cell.weekend { background: #fefefe; }
+.cal-cell.selected { outline: 2px solid var(--blue); outline-offset: -2px; z-index: 1; }
+.day-num { font-size: 13px; font-weight: 600; margin-bottom: 4px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+.task-dot-row { display: flex; flex-wrap: wrap; gap: 2px; }
+.task-pill { font-size: 10px; padding: 1px 6px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; line-height: 1.6; }
+.task-pill.financial { background: var(--blue-light); color: var(--blue-dark); }
+.task-pill.reporting { background: var(--green-light); color: #166534; }
+.task-pill.operations { background: var(--orange-light); color: #9a3412; }
+.task-pill.admin { background: var(--gray-light); color: #475569; }
+.task-pill.done { opacity: 0.5; text-decoration: line-through; }
+.task-count { position: absolute; top: 6px; right: 6px; background: var(--blue); color: #fff; font-size: 9px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.task-count.all-done { background: var(--green); }
+
+.panel-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.2); z-index: 100; display: none; }
+.panel-overlay.open { display: block; }
+.side-panel { position: fixed; top: 0; right: -420px; width: 420px; max-width: 90vw; height: 100vh; background: var(--bg); box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 101; transition: right 0.25s ease; overflow-y: auto; }
+.side-panel.open { right: 0; }
+.panel-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg); z-index: 1; }
+.panel-header h3 { font-size: 16px; font-weight: 700; }
+.panel-header .close-btn { width: 30px; height: 30px; border-radius: 8px; border: none; background: var(--surface); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.panel-body { padding: 16px 20px; }
+.task-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: var(--surface); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); transition: all 0.15s; }
+.task-item:hover { border-color: var(--blue); }
+.task-item.completed { opacity: 0.6; }
+.task-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-size: 11px; }
+.task-check:hover { border-color: var(--blue); background: var(--blue-light); }
+.task-check.checked { background: var(--green); border-color: var(--green); color: #fff; }
+.task-info { flex: 1; }
+.task-name { font-size: 13px; font-weight: 600; }
+.task-item.completed .task-name { text-decoration: line-through; }
+.task-cat { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-top: 3px; }
+.task-cat.financial { background: var(--blue-light); color: var(--blue-dark); }
+.task-cat.reporting { background: var(--green-light); color: #166534; }
+.task-cat.operations { background: var(--orange-light); color: #9a3412; }
+.task-cat.admin { background: var(--gray-light); color: #475569; }
+.task-completed-by { font-size: 11px; color: var(--green); margin-top: 4px; }
+
+.progress-section { margin-bottom: 16px; }
+.progress-bar-bg { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); border-radius: 4px; transition: width 0.4s ease; }
+.progress-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: flex; justify-content: space-between; }
+
+.history-section { margin-top: 24px; }
+.history-month { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.history-month-header { padding: 12px 16px; background: var(--surface); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; }
+.history-month-header .completion-rate { font-size: 12px; font-weight: 500; }
+.history-month-body { padding: 12px 16px; display: none; }
+.history-month.open .history-month-body { display: block; }
+.history-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.history-item:last-child { border-bottom: none; }
+.history-item .done { color: var(--green); }
+.history-item .missed { color: var(--red); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg); border-radius: 12px; padding: 24px; width: 440px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.modal label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-secondary); }
+.modal input, .modal select, .modal textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; margin-bottom: 12px; font-family: inherit; }
+.modal textarea { resize: vertical; min-height: 60px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-dark); }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; text-align: center; box-shadow: var(--shadow); }
+.stat-card .num { font-size: 28px; font-weight: 800; color: var(--blue); }
+.stat-card .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.stat-card.highlight { border-color: var(--blue); background: var(--blue-light); }
+.stat-card.highlight .num { color: var(--text); }
+
+.add-task-btn { padding: 10px; border: 2px dashed var(--border); border-radius: 8px; text-align: center; cursor: pointer; color: var(--text-muted); font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.add-task-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+
+.config-input { font-family: monospace !important; font-size: 12px !important; min-height: 140px; }
+
+@media (max-width: 768px) {
+  .cal-cell { min-height: 70px; padding: 4px; }
+  .task-pill { display: none; }
+  .day-num { font-size: 12px; }
+  .side-panel { width: 100vw; }
+  .topbar { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="setup-banner" id="setupBanner" style="display:none">
+    <div class="icon">&#128279;</div>
+    <div class="text">
+      <strong>Single-user mode — connect Firebase to share with the team</strong>
+      Tasks are saved to this browser only. Add Firebase (free) so Sam, Chase, Andy, and everyone else sees the same calendar.
+    </div>
+    <button onclick="openConfigModal()">Connect Firebase</button>
+    <button class="dismiss" onclick="dismissBanner()">Later</button>
+  </div>
+
+  <div class="topbar">
+    <h1><span>ROME</span> PM Calendar</h1>
+    <div class="topbar-right">
+      <select class="user-select" id="userSelect" onchange="setUser(this.value)"></select>
+      <div class="view-toggle">
+        <button class="active" onclick="setView('calendar')" id="viewCal">Calendar</button>
+        <button onclick="setView('history')" id="viewHist">History</button>
+      </div>
+      <button class="btn btn-secondary" onclick="openConfigModal()" title="Settings" style="padding:6px 10px">&#9881;&#65039;</button>
+    </div>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="month-nav" id="monthNav">
+    <button class="nav-btn" onclick="changeMonth(-1)">&#9664;</button>
+    <h2 id="monthLabel"></h2>
+    <button class="nav-btn" onclick="changeMonth(1)">&#9654;</button>
+    <div class="spacer"></div>
+    <button class="today-btn" onclick="goToday()">Today</button>
+  </div>
+
+  <div class="filter-row" id="filterRow">
+    <button class="filter-chip active" data-cat="all" onclick="toggleFilter('all')">All</button>
+    <button class="filter-chip cat-financial" data-cat="financial" onclick="toggleFilter('financial')">Financial</button>
+    <button class="filter-chip cat-reporting" data-cat="reporting" onclick="toggleFilter('reporting')">Reporting</button>
+    <button class="filter-chip cat-operations" data-cat="operations" onclick="toggleFilter('operations')">Operations</button>
+    <button class="filter-chip cat-admin" data-cat="admin" onclick="toggleFilter('admin')">Admin</button>
+  </div>
+
+  <div id="calendarView"></div>
+  <div id="historyView" style="display:none"></div>
+</div>
+
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="side-panel" id="sidePanel">
+  <div class="panel-header">
+    <h3 id="panelTitle">Tasks</h3>
+    <button class="close-btn" onclick="closePanel()">&#10005;</button>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</div>
+
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <h3>Settings</h3>
+    <label>Firebase Config (paste your config object from Firebase console)</label>
+    <textarea class="config-input" id="firebaseConfigInput" placeholder='{
+  "apiKey": "...",
+  "authDomain": "...",
+  "projectId": "...",
+  "storageBucket": "...",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">See README.md for 5-minute setup instructions. Firebase is free for this use.</p>
+    <hr style="margin-bottom:12px;border:none;border-top:1px solid var(--border)">
+    <label>Team Members (comma-separated)</label>
+    <input id="teamMembersInput" placeholder="Esfir, Sam, Chase, Andy, Michael, Dave, Stan">
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeConfigModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveConfig()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <h3 id="taskModalTitle">Add Task</h3>
+    <label>Task Name</label>
+    <input id="taskNameInput" placeholder="e.g. Mortgage Payment - 2901 K St">
+    <label>Category</label>
+    <select id="taskCatInput">
+      <option value="financial">Financial</option>
+      <option value="reporting">Reporting</option>
+      <option value="operations">Operations</option>
+      <option value="admin">Admin</option>
+    </select>
+    <label>Schedule</label>
+    <select id="taskSchedType" onchange="updateSchedUI()">
+      <option value="fixed">Fixed day of month</option>
+      <option value="nth-weekday">Nth weekday (e.g. 2nd Monday)</option>
+      <option value="last-biz">Last business day</option>
+      <option value="range">Date range (e.g. 1st-5th)</option>
+    </select>
+    <div id="schedFixedUI"><label>Day</label><input type="number" id="taskFixedDay" min="1" max="31" placeholder="27"></div>
+    <div id="schedNthUI" style="display:none">
+      <label>Which week</label>
+      <select id="taskNthN"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option></select>
+      <label>Weekday</label>
+      <select id="taskNthDay"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option></select>
+    </div>
+    <div id="schedRangeUI" style="display:none">
+      <label>Start day</label><input type="number" id="taskRangeStart" min="1" max="31" placeholder="1">
+      <label>End day</label><input type="number" id="taskRangeEnd" min="1" max="31" placeholder="5">
+    </div>
+    <label>Property (optional)</label>
+    <input id="taskPropertyInput" placeholder="e.g. 2901 K Street">
+    <label>Notes</label>
+    <textarea id="taskNotesInput" placeholder="Any details..."></textarea>
+    <input type="hidden" id="taskEditId">
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="taskDeleteBtn" onclick="deleteTask()" style="display:none;margin-right:auto">Delete</button>
+      <button class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_TASKS = [
+  { id:'t1', name:'Bank Reconciliations (all properties)', category:'financial', schedule:{type:'fixed',day:1}, property:'', notes:'Run in Yardi Breeze for each property' },
+  { id:'t2', name:'Monthly Financial File Organization', category:'admin', schedule:{type:'fixed',day:1}, property:'', notes:'Sort Yardi statements + PM invoices into property subfolders' },
+  { id:'t3', name:'AP Invoice Entry (Yardi)', category:'financial', schedule:{type:'range',start:1,end:5}, property:'', notes:'Enter prior month invoices into Yardi' },
+  { id:'t4', name:'Review Prior Month Financials', category:'reporting', schedule:{type:'range',start:1,end:5}, property:'', notes:'' },
+  { id:'t5', name:'1st Round Tenant Balance Emails', category:'operations', schedule:{type:'nth-weekday',n:2,weekday:1}, property:'', notes:'Send via Yardi Breeze - all properties' },
+  { id:'t6', name:'BRK Retail Sales - Collect & Enter', category:'reporting', schedule:{type:'fixed',day:10}, property:'Brickyard Shopping Center', notes:'Collect missing reports, enter into Yardi Retail Setup' },
+  { id:'t7', name:'Financial Package Cover Letters', category:'reporting', schedule:{type:'fixed',day:10}, property:'', notes:'All properties - fill from budget comparison + cash flow PDFs' },
+  { id:'t8', name:'Budget vs. Actual Variance Reports', category:'reporting', schedule:{type:'fixed',day:15}, property:'', notes:'Pull from Yardi, flag 5%+ variances, generate AI summary' },
+  { id:'t9', name:'Send Variance Summary to Sam', category:'reporting', schedule:{type:'fixed',day:15}, property:'', notes:'Internal review email before owner reports go out' },
+  { id:'t10', name:'2nd Round Tenant Balance Emails', category:'operations', schedule:{type:'nth-weekday',n:3,weekday:1}, property:'', notes:'Follow-up round - all properties' },
+  { id:'t11', name:'Mortgage Payment Reminder - 2901 K St', category:'financial', schedule:{type:'fixed',day:20}, property:'2901 K Street', notes:'Verify sufficient funds in bank account' },
+  { id:'t12', name:'ROME Brokerage Monthly Meeting', category:'admin', schedule:{type:'nth-weekday',n:4,weekday:5}, property:'', notes:'2901 K Street, Suite 306 + Teams' },
+  { id:'t13', name:'Ground Lease Payment', category:'financial', schedule:{type:'fixed',day:25}, property:'', notes:'' },
+  { id:'t14', name:'Mortgage Payment - 2901 K St', category:'financial', schedule:{type:'fixed',day:27}, property:'2901 K Street', notes:'Pay via Yardi' },
+  { id:'t15', name:'Owner Distributions', category:'financial', schedule:{type:'last-biz'}, property:'', notes:'All properties' },
+  { id:'t16', name:'Month-End Close', category:'admin', schedule:{type:'last-biz'}, property:'', notes:'' },
+];
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let state = {
+  currentMonth: new Date().getMonth(),
+  currentYear: new Date().getFullYear(),
+  selectedDate: null,
+  view: 'calendar',
+  filter: 'all',
+  currentUser: '',
+  tasks: [],
+  completions: {},
+  firebaseConfig: null,
+  teamMembers: ['Esfir','Sam','Chase','Andy','Michael','Dave','Stan'],
+  bannerDismissed: false,
+};
+
+let db = null;
+
+function loadLocal() {
+  try {
+    const s = localStorage.getItem('rome-pm-cal');
+    if (s) {
+      const d = JSON.parse(s);
+      state.tasks = d.tasks && d.tasks.length ? d.tasks : JSON.parse(JSON.stringify(DEFAULT_TASKS));
+      state.completions = d.completions || {};
+      state.currentUser = d.currentUser || '';
+      state.firebaseConfig = d.firebaseConfig || null;
+      state.teamMembers = d.teamMembers || state.teamMembers;
+      state.bannerDismissed = d.bannerDismissed || false;
+    } else {
+      state.tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+    }
+  } catch(e) { state.tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS)); }
+}
+
+function saveLocal() {
+  localStorage.setItem('rome-pm-cal', JSON.stringify({
+    tasks: state.tasks, completions: state.completions, currentUser: state.currentUser,
+    firebaseConfig: state.firebaseConfig, teamMembers: state.teamMembers, bannerDismissed: state.bannerDismissed,
+  }));
+}
+
+async function initFirebase() {
+  if (!state.firebaseConfig) return;
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const fb = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const app = initializeApp(state.firebaseConfig);
+    db = fb.getFirestore(app);
+    window._fb = fb;
+
+    fb.onSnapshot(fb.collection(db, 'tasks'), (snap) => {
+      if (snap.empty && state.tasks.length > 0) {
+        state.tasks.forEach(t => fb.setDoc(fb.doc(db, 'tasks', t.id), t));
+        return;
+      }
+      state.tasks = []; snap.forEach(d => state.tasks.push({id:d.id,...d.data()}));
+      saveLocal(); render();
+    });
+
+    fb.onSnapshot(fb.collection(db, 'completions'), (snap) => {
+      state.completions = {};
+      snap.forEach(d => {
+        const data = d.data(); const key = data.monthKey;
+        if (!state.completions[key]) state.completions[key] = {};
+        state.completions[key][data.taskId] = { by:data.by, at:data.at, notes:data.notes||'' };
+      });
+      saveLocal(); render();
+    });
+
+    document.getElementById('setupBanner').style.display = 'none';
+  } catch(e) { console.error('Firebase init failed:', e); db = null; }
+}
+
+async function saveCompletion(mk, taskId, data) {
+  if (db && window._fb) {
+    const docId = mk + '_' + taskId;
+    if (data) await window._fb.setDoc(window._fb.doc(db, 'completions', docId), {monthKey:mk, taskId, by:data.by, at:data.at, notes:data.notes||''});
+    else await window._fb.deleteDoc(window._fb.doc(db, 'completions', docId));
+  }
+  saveLocal();
+}
+
+async function saveTaskToDB(task) {
+  if (db && window._fb) await window._fb.setDoc(window._fb.doc(db, 'tasks', task.id), task);
+  saveLocal();
+}
+
+async function deleteTaskFromDB(taskId) {
+  if (db && window._fb) await window._fb.deleteDoc(window._fb.doc(db, 'tasks', taskId));
+  saveLocal();
+}
+
+function getLastBizDay(y, m) {
+  let d = new Date(y, m+1, 0);
+  while (d.getDay()===0||d.getDay()===6) d.setDate(d.getDate()-1);
+  return d.getDate();
+}
+
+function getNthWeekday(y, m, n, wd) {
+  let count = 0;
+  for (let d=1; d<=31; d++) {
+    const dt = new Date(y, m, d);
+    if (dt.getMonth()!==m) break;
+    if (dt.getDay()===wd) { count++; if (count===n) return d; }
+  }
+  return null;
+}
+
+function getTaskDueDates(task, y, m) {
+  const s = task.schedule; if (!s) return [];
+  if (s.type==='fixed') return [s.day];
+  if (s.type==='last-biz') return [getLastBizDay(y,m)];
+  if (s.type==='nth-weekday') { const d=getNthWeekday(y,m,s.n,s.weekday); return d?[d]:[]; }
+  if (s.type==='range') return [s.start];
+  return [];
+}
+
+function mkKey(y, m) { return y+'-'+String(m+1).padStart(2,'0'); }
+
+function render() {
+  renderStats(); renderBanner(); updateUserSelect();
+  if (state.view==='calendar') renderCalendar(); else renderHistory();
+}
+
+function renderBanner() {
+  document.getElementById('setupBanner').style.display = (state.firebaseConfig||state.bannerDismissed) ? 'none' : 'flex';
+}
+
+function renderStats() {
+  const mk = mkKey(state.currentYear, state.currentMonth);
+  const comps = state.completions[mk]||{};
+  const total = state.tasks.length;
+  const done = Object.keys(comps).length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  const today = new Date();
+  const todayTasks = state.tasks.filter(t => getTaskDueDates(t,today.getFullYear(),today.getMonth()).includes(today.getDate()));
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card highlight"><div class="num">${pct}%</div><div class="lbl">${MONTHS[state.currentMonth]} Complete</div></div>
+    <div class="stat-card"><div class="num">${done}/${total}</div><div class="lbl">Tasks Done</div></div>
+    <div class="stat-card"><div class="num">${todayTasks.length}</div><div class="lbl">Due Today</div></div>
+    <div class="stat-card"><div class="num">${total-done}</div><div class="lbl">Remaining</div></div>`;
+}
+
+function renderCalendar() {
+  const y=state.currentYear, m=state.currentMonth;
+  const mk=mkKey(y,m), comps=state.completions[mk]||{};
+  const firstDay=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), prevDim=new Date(y,m,0).getDate();
+  const today=new Date();
+
+  document.getElementById('monthLabel').textContent = MONTHS[m]+' '+y;
+
+  const taskMap={};
+  state.tasks.forEach(t => {
+    if (state.filter!=='all'&&t.category!==state.filter) return;
+    getTaskDueDates(t,y,m).forEach(d => { if(!taskMap[d]) taskMap[d]=[]; taskMap[d].push(t); });
+  });
+
+  let html='<div class="cal-grid">';
+  DAYS_SHORT.forEach(d => html+=`<div class="cal-header">${d}</div>`);
+
+  const totalCells = Math.ceil((firstDay+dim)/7)*7;
+  for (let i=0; i<totalCells; i++) {
+    const dn = i-firstDay+1;
+    const isOther = dn<1||dn>dim;
+    const dispNum = isOther ? (dn<1?prevDim+dn:dn-dim) : dn;
+    const isToday = !isOther&&y===today.getFullYear()&&m===today.getMonth()&&dn===today.getDate();
+    const isWknd = (i%7===0||i%7===6)&&!isOther;
+    const isSel = state.selectedDate===dn&&!isOther;
+    const dt = isOther?[]:(taskMap[dn]||[]);
+    const doneC = dt.filter(t=>comps[t.id]).length;
+    const allDone = dt.length>0&&doneC===dt.length;
+
+    let cls='cal-cell';
+    if(isOther)cls+=' other'; if(isToday)cls+=' today'; if(isWknd&&!isOther&&!isToday)cls+=' weekend'; if(isSel)cls+=' selected';
+
+    html+=`<div class="${cls}" ${!isOther?`onclick="selectDay(${dn})"`:''}>`;
+    html+=`<div class="day-num">${dispNum}</div>`;
+    if(dt.length>0&&!isOther){
+      html+=`<div class="task-count ${allDone?'all-done':''}">${doneC}/${dt.length}</div>`;
+      html+='<div class="task-dot-row">';
+      dt.slice(0,3).forEach(t=>{
+        const d2=comps[t.id]?' done':'';
+        const sn=t.name.length>18?t.name.slice(0,16)+'...':t.name;
+        html+=`<div class="task-pill ${t.category}${d2}">${sn}</div>`;
+      });
+      if(dt.length>3) html+=`<div class="task-pill admin">+${dt.length-3} more</div>`;
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+
+  document.getElementById('calendarView').innerHTML=html;
+  document.getElementById('calendarView').style.display='';
+  document.getElementById('historyView').style.display='none';
+}
+
+function renderHistory() {
+  document.getElementById('calendarView').style.display='none';
+  document.getElementById('historyView').style.display='';
+  const months=Object.keys(state.completions).sort().reverse();
+  if(!months.length){
+    document.getElementById('historyView').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted)">No history yet. Check off tasks in Calendar view to start building your archive.</div>';
+    return;
+  }
+  let html='<div class="history-section">';
+  months.forEach(mk=>{
+    const comps=state.completions[mk];
+    const [yy,mm]=mk.split('-').map(Number);
+    const label=MONTHS[mm-1]+' '+yy;
+    const cc=Object.keys(comps).length, tt=state.tasks.length;
+    const pct=tt?Math.round(cc/tt*100):0;
+    const color=pct===100?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
+    html+=`<div class="history-month" onclick="this.classList.toggle('open')">`;
+    html+=`<div class="history-month-header"><span>${label}</span><span class="completion-rate" style="color:${color}">${cc}/${tt} tasks - ${pct}%</span></div>`;
+    html+='<div class="history-month-body">';
+    state.tasks.forEach(t=>{
+      const c=comps[t.id];
+      if(c){ const w=c.at?new Date(c.at).toLocaleDateString():''; html+=`<div class="history-item"><span class="done">&#10003; ${t.name}</span><span style="color:var(--text-muted)">${c.by||''} - ${w}</span></div>`; }
+      else html+=`<div class="history-item"><span class="missed">&#9675; ${t.name}</span><span style="color:var(--text-muted)">Not completed</span></div>`;
+    });
+    html+='</div></div>';
+  });
+  html+='</div>';
+  document.getElementById('historyView').innerHTML=html;
+}
+
+function updateUserSelect() {
+  const sel=document.getElementById('userSelect');
+  sel.innerHTML='<option value="">Who are you?</option>';
+  state.teamMembers.forEach(m=>{ sel.innerHTML+=`<option value="${m}" ${state.currentUser===m?'selected':''}>${m}</option>`; });
+}
+
+function selectDay(day) { state.selectedDate=day; render(); openPanel(day); }
+
+function openPanel(day) {
+  const y=state.currentYear,m=state.currentMonth,mk=mkKey(y,m),comps=state.completions[mk]||{};
+  const taskMap={};
+  state.tasks.forEach(t=>{
+    if(state.filter!=='all'&&t.category!==state.filter) return;
+    getTaskDueDates(t,y,m).forEach(d=>{if(!taskMap[d])taskMap[d]=[];taskMap[d].push(t);});
+  });
+  const dt=taskMap[day]||[];
+  const dateObj=new Date(y,m,day);
+  document.getElementById('panelTitle').textContent=DAYS_SHORT[dateObj.getDay()]+', '+MONTHS[m]+' '+day;
+
+  let html='';
+  if(dt.length>0){
+    const dc=dt.filter(t=>comps[t.id]).length, pct=Math.round(dc/dt.length*100);
+    html+=`<div class="progress-section"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div><div class="progress-label"><span>${dc} of ${dt.length} complete</span><span>${pct}%</span></div></div>`;
+    dt.forEach(t=>{
+      const c=comps[t.id], chk=c?' checked':'', cmp=c?' completed':'';
+      html+=`<div class="task-item${cmp}"><div class="task-check${chk}" onclick="toggleTask('${t.id}')">${c?'&#10003;':''}</div><div class="task-info"><div class="task-name">${t.name}</div><span class="task-cat ${t.category}">${t.category}</span>${t.property?`<span style="font-size:10px;color:var(--text-muted);margin-left:4px">- ${t.property}</span>`:''}${t.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:3px">${t.notes}</div>`:''}${c?`<div class="task-completed-by">&#10003; ${c.by||'Unknown'} - ${c.at?new Date(c.at).toLocaleString():''}</div>`:''}<div style="margin-top:4px"><a href="#" style="font-size:11px;color:var(--blue)" onclick="event.preventDefault();openEditTask('${t.id}')">Edit</a></div></div></div>`;
+    });
+  } else {
+    html+='<div style="text-align:center;padding:30px;color:var(--text-muted)">No tasks due this day</div>';
+  }
+  html+=`<div class="add-task-btn" onclick="openAddTask(${day})" style="margin-top:12px">+ Add task on this day</div>`;
+  document.getElementById('panelBody').innerHTML=html;
+  document.getElementById('panelOverlay').classList.add('open');
+  document.getElementById('sidePanel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('panelOverlay').classList.remove('open');
+  document.getElementById('sidePanel').classList.remove('open');
+  state.selectedDate=null; render();
+}
+
+function toggleTask(taskId) {
+  if(!state.currentUser){alert('Pick your name from the dropdown first.');return;}
+  const mk=mkKey(state.currentYear,state.currentMonth);
+  if(!state.completions[mk]) state.completions[mk]={};
+  if(state.completions[mk][taskId]){ delete state.completions[mk][taskId]; saveCompletion(mk,taskId,null); }
+  else { const data={by:state.currentUser,at:new Date().toISOString(),notes:''}; state.completions[mk][taskId]=data; saveCompletion(mk,taskId,data); }
+  saveLocal(); render(); if(state.selectedDate) openPanel(state.selectedDate);
+}
+
+function changeMonth(dir) {
+  state.currentMonth+=dir;
+  if(state.currentMonth>11){state.currentMonth=0;state.currentYear++;}
+  if(state.currentMonth<0){state.currentMonth=11;state.currentYear--;}
+  state.selectedDate=null; render();
+}
+
+function goToday() {
+  const t=new Date(); state.currentYear=t.getFullYear(); state.currentMonth=t.getMonth(); state.selectedDate=t.getDate(); render(); openPanel(t.getDate());
+}
+
+function setView(v) {
+  state.view=v;
+  document.getElementById('viewCal').classList.toggle('active',v==='calendar');
+  document.getElementById('viewHist').classList.toggle('active',v==='history');
+  document.getElementById('monthNav').style.display=v==='calendar'?'':'none';
+  document.getElementById('filterRow').style.display=v==='calendar'?'':'none';
+  render();
+}
+
+function setUser(name) { state.currentUser=name; saveLocal(); }
+
+function toggleFilter(cat) {
+  state.filter=cat;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===cat));
+  render();
+}
+
+function dismissBanner() { state.bannerDismissed=true; saveLocal(); renderBanner(); }
+
+function openAddTask(day) {
+  document.getElementById('taskModalTitle').textContent='Add Task';
+  document.getElementById('taskNameInput').value='';
+  document.getElementById('taskCatInput').value='financial';
+  document.getElementById('taskSchedType').value='fixed';
+  document.getElementById('taskFixedDay').value=day||'';
+  document.getElementById('taskPropertyInput').value='';
+  document.getElementById('taskNotesInput').value='';
+  document.getElementById('taskEditId').value='';
+  document.getElementById('taskDeleteBtn').style.display='none';
+  updateSchedUI();
+  document.getElementById('taskModal').classList.add('open');
+}
+
+function openEditTask(taskId) {
+  const t=state.tasks.find(x=>x.id===taskId); if(!t) return;
+  document.getElementById('taskModalTitle').textContent='Edit Task';
+  document.getElementById('taskNameInput').value=t.name;
+  document.getElementById('taskCatInput').value=t.category;
+  document.getElementById('taskSchedType').value=t.schedule.type;
+  if(t.schedule.type==='fixed') document.getElementById('taskFixedDay').value=t.schedule.day;
+  if(t.schedule.type==='nth-weekday'){document.getElementById('taskNthN').value=t.schedule.n;document.getElementById('taskNthDay').value=t.schedule.weekday;}
+  if(t.schedule.type==='range'){document.getElementById('taskRangeStart').value=t.schedule.start;document.getElementById('taskRangeEnd').value=t.schedule.end;}
+  document.getElementById('taskPropertyInput').value=t.property||'';
+  document.getElementById('taskNotesInput').value=t.notes||'';
+  document.getElementById('taskEditId').value=taskId;
+  document.getElementById('taskDeleteBtn').style.display='';
+  updateSchedUI();
+  document.getElementById('taskModal').classList.add('open');
+}
+
+function closeTaskModal() { document.getElementById('taskModal').classList.remove('open'); }
+
+function updateSchedUI() {
+  const t=document.getElementById('taskSchedType').value;
+  document.getElementById('schedFixedUI').style.display=t==='fixed'?'':'none';
+  document.getElementById('schedNthUI').style.display=t==='nth-weekday'?'':'none';
+  document.getElementById('schedRangeUI').style.display=t==='range'?'':'none';
+}
+
+function saveTask() {
+  const name=document.getElementById('taskNameInput').value.trim();
+  if(!name){alert('Task name is required.');return;}
+  const category=document.getElementById('taskCatInput').value;
+  const st=document.getElementById('taskSchedType').value;
+  let schedule={type:st};
+  if(st==='fixed') schedule.day=parseInt(document.getElementById('taskFixedDay').value)||1;
+  if(st==='nth-weekday'){schedule.n=parseInt(document.getElementById('taskNthN').value);schedule.weekday=parseInt(document.getElementById('taskNthDay').value);}
+  if(st==='range'){schedule.start=parseInt(document.getElementById('taskRangeStart').value)||1;schedule.end=parseInt(document.getElementById('taskRangeEnd').value)||5;}
+
+  const editId=document.getElementById('taskEditId').value;
+  if(editId){
+    const idx=state.tasks.findIndex(t=>t.id===editId);
+    if(idx>=0){
+      state.tasks[idx].name=name; state.tasks[idx].category=category; state.tasks[idx].schedule=schedule;
+      state.tasks[idx].property=document.getElementById('taskPropertyInput').value.trim();
+      state.tasks[idx].notes=document.getElementById('taskNotesInput').value.trim();
+      saveTaskToDB(state.tasks[idx]);
+    }
+  } else {
+    const nt={id:'t'+Date.now(),name,category,schedule,property:document.getElementById('taskPropertyInput').value.trim(),notes:document.getElementById('taskNotesInput').value.trim()};
+    state.tasks.push(nt); saveTaskToDB(nt);
+  }
+  saveLocal(); closeTaskModal(); render(); if(state.selectedDate) openPanel(state.selectedDate);
+}
+
+function deleteTask() {
+  const eid=document.getElementById('taskEditId').value; if(!eid) return;
+  if(!confirm('Delete this task permanently?')) return;
+  state.tasks=state.tasks.filter(t=>t.id!==eid); deleteTaskFromDB(eid); saveLocal(); closeTaskModal(); render();
+}
+
+function openConfigModal() {
+  document.getElementById('firebaseConfigInput').value=state.firebaseConfig?JSON.stringify(state.firebaseConfig,null,2):'';
+  document.getElementById('teamMembersInput').value=state.teamMembers.join(', ');
+  document.getElementById('configModal').classList.add('open');
+}
+function closeConfigModal() { document.getElementById('configModal').classList.remove('open'); }
+function saveConfig() {
+  const raw=document.getElementById('firebaseConfigInput').value.trim();
+  if(raw){try{state.firebaseConfig=JSON.parse(raw);}catch(e){alert('Invalid JSON.');return;}} else state.firebaseConfig=null;
+  const mm=document.getElementById('teamMembersInput').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(mm.length) state.teamMembers=mm;
+  saveLocal(); closeConfigModal(); if(state.firebaseConfig) initFirebase(); render();
+}
+
+loadLocal(); render(); if(state.firebaseConfig) initFirebase();
+</script>
+</body>
+</html>
