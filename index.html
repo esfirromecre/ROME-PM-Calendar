@@ -117,6 +117,37 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; }
 .modal-overlay.open { display: flex; }
+
+.personal-view { padding: 0 16px; }
+.personal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.personal-header h3 { font-size: 16px; font-weight: 700; flex: 1; }
+.todo-input-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.todo-input-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+.todo-input-row select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--bg); }
+.todo-input-row button { padding: 8px 16px; border: none; border-radius: 8px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+.todo-input-row button:hover { opacity: 0.9; }
+.todo-filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.todo-filter { padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: 12px; font-weight: 500; }
+.todo-filter.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; transition: all 0.15s; }
+.todo-item:hover { border-color: var(--blue); }
+.todo-item.done { opacity: 0.55; }
+.todo-item.done .todo-text { text-decoration: line-through; }
+.todo-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.todo-check.checked { background: var(--blue); border-color: var(--blue); color: #fff; font-size: 11px; }
+.todo-text { flex: 1; font-size: 13px; line-height: 1.4; }
+.todo-priority { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0; }
+.todo-priority.high { background: #fee2e2; color: #dc2626; }
+.todo-priority.medium { background: #fef3c7; color: #d97706; }
+.todo-priority.low { background: #dbeafe; color: #2563eb; }
+.todo-date { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.todo-delete { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 0 4px; opacity: 0; transition: opacity 0.15s; }
+.todo-item:hover .todo-delete { opacity: 1; }
+.todo-delete:hover { color: #dc2626; }
+.todo-section { margin-bottom: 20px; }
+.todo-section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.todo-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; }
+
 .modal { background: var(--bg); border-radius: 12px; padding: 24px; width: 440px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
 .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
 .modal label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-secondary); }
@@ -204,6 +235,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto
         <button class="active" onclick="setView('calendar')" id="viewCal">Calendar</button>
         <button onclick="setView('projects')" id="viewProj">Projects</button>
         <button onclick="setView('history')" id="viewHist">History</button>
+        <button onclick="setView('personal')" id="viewPersonal">My Tasks</button>
       </div>
       <button class="btn btn-secondary" onclick="openConfigModal()" title="Settings" style="padding:6px 10px">&#9881;&#65039;</button>
     </div>
@@ -230,6 +262,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto
   <div id="calendarView"></div>
   <div id="projectsView" style="display:none"></div>
   <div id="historyView" style="display:none"></div>
+    <div id="personalView" style="display:none"></div>
 </div>
 
 <div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
@@ -436,6 +469,8 @@ let state = {
   },
   teamMembers: ['Esfir','Sam','Chase','Andy','Michael','Dave','Stan'],
   bannerDismissed: false,
+  personalTodos: [],
+  personalFilter: 'all',
 };
 
 let db = null;
@@ -453,6 +488,8 @@ function loadLocal() {
       state.firebaseConfig = d.firebaseConfig || state.firebaseConfig;
       state.teamMembers = d.teamMembers || state.teamMembers;
       state.bannerDismissed = d.bannerDismissed || false;
+      state.personalTodos = d.personalTodos || [];
+      state.personalFilter = d.personalFilter || 'all';
     } else {
       state.tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
     }
@@ -463,6 +500,7 @@ function saveLocal() {
   localStorage.setItem('rome-pm-cal', JSON.stringify({
     tasks: state.tasks, projects: state.projects, completions: state.completions, currentUser: state.currentUser,
     firebaseConfig: state.firebaseConfig, teamMembers: state.teamMembers, bannerDismissed: state.bannerDismissed, projFilter: state.projFilter,
+    personalTodos: state.personalTodos, personalFilter: state.personalFilter,
   }));
 }
 
@@ -558,7 +596,7 @@ function mkKey(y, m) { return y+'-'+String(m+1).padStart(2,'0'); }
 
 function render() {
   renderStats(); renderBanner(); updateUserSelect();
-  if (state.view==='calendar') renderCalendar(); else if (state.view==='projects') renderProjects(); else renderHistory();
+  if (state.view==='calendar') renderCalendar(); else if (state.view==='projects') renderProjects(); else if (state.view==='personal') renderPersonal(); else renderHistory();
 }
 
 function renderBanner() {
@@ -732,11 +770,13 @@ function setView(v) {
   document.getElementById('viewCal').classList.toggle('active',v==='calendar');
   document.getElementById('viewProj').classList.toggle('active',v==='projects');
   document.getElementById('viewHist').classList.toggle('active',v==='history');
+  document.getElementById('viewPersonal').classList.toggle('active',v==='personal');
   document.getElementById('monthNav').style.display=v==='calendar'?'':'none';
   document.getElementById('filterRow').style.display=v==='calendar'?'':'none';
   document.getElementById('calendarView').style.display=v==='calendar'?'':'none';
   document.getElementById('projectsView').style.display=v==='projects'?'':'none';
   document.getElementById('historyView').style.display=v==='history'?'':'none';
+  document.getElementById('personalView').style.display=v==='personal'?'':'none';
   render();
 }
 
@@ -920,6 +960,163 @@ function editProject(id) {
   if(notes!==null) p.notes=notes;
   saveLocal(); render();
   if(db&&window._fb) window._fb.setDoc(window._fb.doc(db,'projects',id),p);
+}
+
+
+
+function renderPersonal() {
+  const el = document.getElementById('personalView');
+  const todos = state.personalTodos;
+  const filter = state.personalFilter;
+  
+  let filtered = todos;
+  if (filter === 'active') filtered = todos.filter(t => !t.done);
+  else if (filter === 'done') filtered = todos.filter(t => t.done);
+  else if (filter === 'high' || filter === 'medium' || filter === 'low') filtered = todos.filter(t => t.priority === filter);
+
+  const active = todos.filter(t => !t.done);
+  const done = todos.filter(t => t.done);
+
+  let h = `<div class="personal-view">
+    <div class="personal-header">
+      <h3>My Tasks</h3>
+      <span style="font-size:13px;color:var(--text-muted)">${active.length} active, ${done.length} done</span>
+    </div>
+    <div class="todo-input-row">
+      <input type="text" id="todoInput" placeholder="Add a new task..." onkeydown="if(event.key==='Enter')addPersonalTodo()">
+      <select id="todoPriority">
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="low">Low</option>
+      </select>
+      <select id="todoDueType">
+        <option value="">No due date</option>
+        <option value="today">Today</option>
+        <option value="tomorrow">Tomorrow</option>
+        <option value="week">This week</option>
+        <option value="custom">Pick date</option>
+      </select>
+      <input type="date" id="todoDueDate" style="display:none;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+      <button onclick="addPersonalTodo()">Add</button>
+    </div>
+    <div class="todo-filters">
+      <div class="todo-filter ${filter==='all'?'active':''}" onclick="setTodoFilter('all')">All (${todos.length})</div>
+      <div class="todo-filter ${filter==='active'?'active':''}" onclick="setTodoFilter('active')">Active (${active.length})</div>
+      <div class="todo-filter ${filter==='done'?'active':''}" onclick="setTodoFilter('done')">Done (${done.length})</div>
+      <div class="todo-filter ${filter==='high'?'active':''}" style="color:#dc2626" onclick="setTodoFilter('high')">High</div>
+      <div class="todo-filter ${filter==='medium'?'active':''}" style="color:#d97706" onclick="setTodoFilter('medium')">Medium</div>
+      <div class="todo-filter ${filter==='low'?'active':''}" style="color:#2563eb" onclick="setTodoFilter('low')">Low</div>
+    </div>`;
+
+  if (filtered.length === 0) {
+    h += `<div class="todo-empty">${filter==='all' ? 'No tasks yet — add one above!' : 'No tasks match this filter.'}</div>`;
+  } else {
+    // Sort: high first, then medium, then low; within same priority, undone first
+    const pOrder = {high:0, medium:1, low:2};
+    const sorted = [...filtered].sort((a,b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      if (pOrder[a.priority] !== pOrder[b.priority]) return pOrder[a.priority] - pOrder[b.priority];
+      return (b.createdAt||0) - (a.createdAt||0);
+    });
+
+    // Group: overdue, today, upcoming, no date, done
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const groups = {overdue:[], today:[], upcoming:[], nodate:[], done:[]};
+    sorted.forEach(t => {
+      if (t.done) { groups.done.push(t); return; }
+      if (!t.dueDate) { groups.nodate.push(t); return; }
+      if (t.dueDate < todayStr) groups.overdue.push(t);
+      else if (t.dueDate === todayStr) groups.today.push(t);
+      else groups.upcoming.push(t);
+    });
+
+    const sections = [
+      {key:'overdue', label:'Overdue', items:groups.overdue, color:'#dc2626'},
+      {key:'today', label:'Due Today', items:groups.today, color:'var(--blue)'},
+      {key:'upcoming', label:'Upcoming', items:groups.upcoming, color:'#059669'},
+      {key:'nodate', label:'No Due Date', items:groups.nodate, color:'var(--text-muted)'},
+      {key:'done', label:'Completed', items:groups.done, color:'var(--text-muted)'},
+    ];
+
+    sections.forEach(s => {
+      if (s.items.length === 0) return;
+      h += `<div class="todo-section"><div class="todo-section-title" style="color:${s.color}">${s.label} (${s.items.length})</div>`;
+      s.items.forEach(t => {
+        const dueLabel = t.dueDate ? new Date(t.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+        h += `<div class="todo-item ${t.done?'done':''}">
+          <div class="todo-check ${t.done?'checked':''}" onclick="togglePersonalTodo('${t.id}')">${t.done?'✓':''}</div>
+          <div class="todo-text">${t.text}</div>
+          ${dueLabel?`<div class="todo-date">${dueLabel}</div>`:''}
+          <div class="todo-priority ${t.priority}">${t.priority}</div>
+          <button class="todo-delete" onclick="deletePersonalTodo('${t.id}')">&times;</button>
+        </div>`;
+      });
+      h += `</div>`;
+    });
+  }
+
+  h += `</div>`;
+  el.innerHTML = h;
+
+  // Wire up the due date picker toggle
+  const dueType = document.getElementById('todoDueType');
+  const dueDate = document.getElementById('todoDueDate');
+  if (dueType && dueDate) {
+    dueType.onchange = function() {
+      dueDate.style.display = this.value === 'custom' ? '' : 'none';
+    };
+  }
+}
+
+function addPersonalTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const priority = document.getElementById('todoPriority').value;
+  const dueType = document.getElementById('todoDueType').value;
+  let dueDate = '';
+  if (dueType === 'today') {
+    dueDate = new Date().toISOString().split('T')[0];
+  } else if (dueType === 'tomorrow') {
+    const d = new Date(); d.setDate(d.getDate()+1);
+    dueDate = d.toISOString().split('T')[0];
+  } else if (dueType === 'week') {
+    const d = new Date(); d.setDate(d.getDate()+7);
+    dueDate = d.toISOString().split('T')[0];
+  } else if (dueType === 'custom') {
+    dueDate = document.getElementById('todoDueDate').value;
+  }
+  state.personalTodos.push({
+    id: 'p' + Date.now(),
+    text: text,
+    priority: priority,
+    dueDate: dueDate,
+    done: false,
+    createdAt: Date.now()
+  });
+  input.value = '';
+  saveLocal();
+  renderPersonal();
+}
+
+function togglePersonalTodo(id) {
+  const t = state.personalTodos.find(t => t.id === id);
+  if (t) { t.done = !t.done; t.doneAt = t.done ? Date.now() : null; }
+  saveLocal();
+  renderPersonal();
+}
+
+function deletePersonalTodo(id) {
+  state.personalTodos = state.personalTodos.filter(t => t.id !== id);
+  saveLocal();
+  renderPersonal();
+}
+
+function setTodoFilter(f) {
+  state.personalFilter = f;
+  saveLocal();
+  renderPersonal();
 }
 
 loadLocal(); render(); if(state.firebaseConfig) initFirebase();
