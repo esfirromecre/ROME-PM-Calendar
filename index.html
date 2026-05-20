@@ -450,7 +450,7 @@ function loadLocal() {
       state.completions = d.completions || {};
       state.projFilter = d.projFilter || 'all';
       state.currentUser = d.currentUser || '';
-      state.firebaseConfig = d.firebaseConfig || null;
+      state.firebaseConfig = d.firebaseConfig || state.firebaseConfig;
       state.teamMembers = d.teamMembers || state.teamMembers;
       state.bannerDismissed = d.bannerDismissed || false;
     } else {
