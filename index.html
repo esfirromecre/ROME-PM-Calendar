@@ -56,7 +56,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto
 
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .cal-header { background: var(--surface); padding: 10px 6px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.cal-cell { background: var(--bg); min-height: 140px; padding: 6px; position: relative; cursor: pointer; transition: background 0.15s; }
+.cal-cell { background: var(--bg); min-height: 100px; padding: 6px; position: relative; cursor: pointer; transition: background 0.15s; }
 .cal-cell:hover { background: #fafbff; }
 .cal-cell.other { background: var(--surface); }
 .cal-cell.other .day-num { color: var(--text-muted); }
@@ -618,12 +618,12 @@ function renderCalendar() {
     if(dt.length>0&&!isOther){
       html+=`<div class="task-count ${allDone?'all-done':''}">${doneC}/${dt.length}</div>`;
       html+='<div class="task-dot-row">';
-      dt.slice(0,3).forEach(t=>{
+      dt.forEach(t=>{
         const d2=comps[t.id]?' done':'';
-        const sn=t.name.length>18?t.name.slice(0,16)+'...':t.name;
+        const sn=t.name;
         html+=`<div class="task-pill ${t.category}${d2}">${sn}</div>`;
       });
-      if(dt.length>3) html+=`<div class="task-pill admin">+${dt.length-3} more</div>`;
+
       html+='</div>';
     }
     html+='</div>';
