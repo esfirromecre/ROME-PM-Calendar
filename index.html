@@ -391,8 +391,6 @@ const DEFAULT_TASKS = [
   { id:'w2', name:'Reminder: Run AP for Property Management', category:'operations', schedule:{type:'weekly',weekday:2}, property:'', notes:'Every Tuesday - all day' },
   { id:'w3', name:'PM Meeting - General Overview', category:'admin', schedule:{type:'weekly',weekday:3}, property:'', notes:'Every Wednesday 9:00 AM' },
   // === MONTHLY - EARLY MONTH (1st-5th) ===
-  { id:'m01', name:'Monthly Financial File Organization', category:'admin', schedule:{type:'fixed',day:1}, property:'', notes:'Sort Yardi statements + PM invoices into property subfolders' },
-  { id:'m02', name:'AP Invoice Entry (Yardi)', category:'financial', schedule:{type:'range',start:1,end:5}, property:'', notes:'Enter prior month invoices into Yardi' },
   { id:'m03', name:'Reminder: Mortgage Payment Due by 10th - Canterbury (8300 Fair Oaks)', category:'financial', schedule:{type:'fixed',day:3}, property:'8300 Fair Oaks Blvd', notes:'Verify sufficient funds' },
   { id:'m04', name:'Mortgage Payment Due - Brickyard Shopping Center', category:'financial', schedule:{type:'fixed',day:5}, property:'Brickyard Shopping Center', notes:'Pay via Yardi' },
   // === FIRST WEEK ITEMS (6th-9th) ===
@@ -442,7 +440,14 @@ const DEFAULT_TASKS = [
   { id:'n1', name:'ROME Real Estate Group Monthly Team Meeting', category:'admin', schedule:{type:'nth-weekday',n:1,weekday:5}, property:'', notes:'101 Parkshore Dr, Folsom + Teams' },
   { id:'n2', name:'1st Round Tenant Balance Emails', category:'operations', schedule:{type:'nth-weekday',n:2,weekday:1}, property:'', notes:'Send via Yardi Breeze - all properties' },
   { id:'n3', name:'2nd Round Tenant Balance Emails', category:'operations', schedule:{type:'nth-weekday',n:3,weekday:1}, property:'', notes:'Follow-up round - all properties' },
-  { id:'n4', name:'ROME Brokerage Monthly Meeting', category:'admin', schedule:{type:'nth-weekday',n:4,weekday:5}, property:'', notes:'2901 K Street, Suite 306 + Teams' },
+  { id:'n4', name:'ROME Brokerage Monthly Meeting', category:'admin', schedule:{type:'nth-weekday',n:3,weekday:5}, property:'', notes:'2901 K Street, Suite 306 + Teams' },
+
+  // === NEW PROPERTY ===
+  { id:'m42', name:'Check Sacramento County Utility - 2300 Longport Dr', category:'operations', schedule:{type:'fixed',day:10}, property:'2300 Longport Dr', notes:'Acct #50007374998 - Call (916) 875-5555' },
+  // === BIRTHDAYS (annual) ===
+  { id:'b1', name:'Birthday - Ulysses Laman', category:'admin', schedule:{type:'annual',month:6,day:14}, property:'', notes:'Happy Birthday Ulysses!' },
+  { id:'b2', name:'Birthday - Chase Burke', category:'admin', schedule:{type:'annual',month:7,day:3}, property:'', notes:'Happy Birthday Chase!' },
+  { id:'b3', name:'Birthday - Brooks Borror', category:'admin', schedule:{type:'annual',month:7,day:19}, property:'', notes:'Happy Birthday Brooks!' },
 ];
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -536,10 +541,10 @@ async function initFirebase() {
   } catch(e) { console.error('Firebase init failed:', e); db = null; }
 }
 
-async function saveCompletion(mk, taskId, data) {
+async function saveCompletion(mk, ck, data) {
   if (db && window._fb) {
-    const docId = mk + '_' + taskId;
-    if (data) await window._fb.setDoc(window._fb.doc(db, 'completions', docId), {monthKey:mk, taskId, by:data.by, at:data.at, notes:data.notes||''});
+    const docId = mk + '_' + ck;
+    if (data) await window._fb.setDoc(window._fb.doc(db, 'completions', docId), {monthKey:mk, taskId:ck, by:data.by, at:data.at, notes:data.notes||''});
     else await window._fb.deleteDoc(window._fb.doc(db, 'completions', docId));
   }
   saveLocal();
@@ -588,9 +593,12 @@ function getTaskDueDates(task, y, m) {
   if (s.type==='last-day') return [new Date(y, m+1, 0).getDate()];
   if (s.type==='nth-weekday') { const d=getNthWeekday(y,m,s.n,s.weekday); return d?[d]:[]; }
   if (s.type==='weekly') return getAllWeekdayDates(y, m, s.weekday);
+  if (s.type==='annual') return (s.month===(m+1)) ? [s.day] : [];
   if (s.type==='range') return [s.start];
   return [];
 }
+
+function compKey(taskId, day) { return taskId + '_d' + day; }
 
 function mkKey(y, m) { return y+'-'+String(m+1).padStart(2,'0'); }
 
@@ -606,8 +614,12 @@ function renderBanner() {
 function renderStats() {
   const mk = mkKey(state.currentYear, state.currentMonth);
   const comps = state.completions[mk]||{};
-  const total = state.tasks.length;
-  const done = Object.keys(comps).length;
+  let total = 0; let done = 0;
+  state.tasks.forEach(t => {
+    const days = getTaskDueDates(t, state.currentYear, state.currentMonth);
+    total += days.length;
+    days.forEach(d => { if (comps[compKey(t.id, d)]) done++; });
+  });
   const pct = total ? Math.round(done/total*100) : 0;
   const today = new Date();
   const todayTasks = state.tasks.filter(t => getTaskDueDates(t,today.getFullYear(),today.getMonth()).includes(today.getDate()));
@@ -645,7 +657,7 @@ function renderCalendar() {
     const isWknd = (i%7===0||i%7===6)&&!isOther;
     const isSel = state.selectedDate===dn&&!isOther;
     const dt = isOther?[]:(taskMap[dn]||[]);
-    const doneC = dt.filter(t=>comps[t.id]).length;
+    const doneC = dt.filter(t=>comps[compKey(t.id,dn)]).length;
     const allDone = dt.length>0&&doneC===dt.length;
 
     let cls='cal-cell';
@@ -657,7 +669,7 @@ function renderCalendar() {
       html+=`<div class="task-count ${allDone?'all-done':''}">${doneC}/${dt.length}</div>`;
       html+='<div class="task-dot-row">';
       dt.forEach(t=>{
-        const d2=comps[t.id]?' done':'';
+        const d2=comps[compKey(t.id,dn)]?' done':'';
         const sn=t.name;
         html+=`<div class="task-pill ${t.category}${d2}">${sn}</div>`;
       });
@@ -686,16 +698,21 @@ function renderHistory() {
     const comps=state.completions[mk];
     const [yy,mm]=mk.split('-').map(Number);
     const label=MONTHS[mm-1]+' '+yy;
-    const cc=Object.keys(comps).length, tt=state.tasks.length;
+    let tt=0; state.tasks.forEach(t=>{tt+=getTaskDueDates(t,yy,mm-1).length;});
+    const cc=Object.keys(comps).length;
     const pct=tt?Math.round(cc/tt*100):0;
     const color=pct===100?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
     html+=`<div class="history-month" onclick="this.classList.toggle('open')">`;
     html+=`<div class="history-month-header"><span>${label}</span><span class="completion-rate" style="color:${color}">${cc}/${tt} tasks - ${pct}%</span></div>`;
     html+='<div class="history-month-body">';
     state.tasks.forEach(t=>{
-      const c=comps[t.id];
-      if(c){ const w=c.at?new Date(c.at).toLocaleDateString():''; html+=`<div class="history-item"><span class="done">&#10003; ${t.name}</span><span style="color:var(--text-muted)">${c.by||''} - ${w}</span></div>`; }
-      else html+=`<div class="history-item"><span class="missed">&#9675; ${t.name}</span><span style="color:var(--text-muted)">Not completed</span></div>`;
+      const days=getTaskDueDates(t,yy,mm-1);
+      days.forEach(d=>{
+        const c=comps[compKey(t.id,d)];
+        const dayLabel=days.length>1?' (day '+d+')':'';
+        if(c){ const w=c.at?new Date(c.at).toLocaleDateString():''; html+=`<div class="history-item"><span class="done">&#10003; ${t.name}${dayLabel}</span><span style="color:var(--text-muted)">${c.by||''} - ${w}</span></div>`; }
+        else html+=`<div class="history-item"><span class="missed">&#9675; ${t.name}${dayLabel}</span><span style="color:var(--text-muted)">Not completed</span></div>`;
+      });
     });
     html+='</div></div>';
   });
@@ -724,11 +741,11 @@ function openPanel(day) {
 
   let html='';
   if(dt.length>0){
-    const dc=dt.filter(t=>comps[t.id]).length, pct=Math.round(dc/dt.length*100);
+    const dc=dt.filter(t=>comps[compKey(t.id,day)]).length, pct=Math.round(dc/dt.length*100);
     html+=`<div class="progress-section"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div><div class="progress-label"><span>${dc} of ${dt.length} complete</span><span>${pct}%</span></div></div>`;
     dt.forEach(t=>{
-      const c=comps[t.id], chk=c?' checked':'', cmp=c?' completed':'';
-      html+=`<div class="task-item${cmp}"><div class="task-check${chk}" onclick="toggleTask('${t.id}')">${c?'&#10003;':''}</div><div class="task-info"><div class="task-name">${t.name}</div><span class="task-cat ${t.category}">${t.category}</span>${t.property?`<span style="font-size:10px;color:var(--text-muted);margin-left:4px">- ${t.property}</span>`:''}${t.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:3px">${t.notes}</div>`:''}${c?`<div class="task-completed-by">&#10003; ${c.by||'Unknown'} - ${c.at?new Date(c.at).toLocaleString():''}</div>`:''}<div style="margin-top:4px"><a href="#" style="font-size:11px;color:var(--blue)" onclick="event.preventDefault();openEditTask('${t.id}')">Edit</a></div></div></div>`;
+      const c=comps[compKey(t.id,day)], chk=c?' checked':'', cmp=c?' completed':'';
+      html+=`<div class="task-item${cmp}"><div class="task-check${chk}" onclick="toggleTask('${t.id}',${day})">${c?'&#10003;':''}</div><div class="task-info"><div class="task-name">${t.name}</div><span class="task-cat ${t.category}">${t.category}</span>${t.property?`<span style="font-size:10px;color:var(--text-muted);margin-left:4px">- ${t.property}</span>`:''}${t.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:3px">${t.notes}</div>`:''}${c?`<div class="task-completed-by">&#10003; ${c.by||'Unknown'} - ${c.at?new Date(c.at).toLocaleString():''}</div>`:''}<div style="margin-top:4px"><a href="#" style="font-size:11px;color:var(--blue)" onclick="event.preventDefault();openEditTask('${t.id}')">Edit</a></div></div></div>`;
     });
   } else {
     html+='<div style="text-align:center;padding:30px;color:var(--text-muted)">No tasks due this day</div>';
@@ -745,12 +762,13 @@ function closePanel() {
   state.selectedDate=null; render();
 }
 
-function toggleTask(taskId) {
+function toggleTask(taskId, day) {
   if(!state.currentUser){alert('Pick your name from the dropdown first.');return;}
   const mk=mkKey(state.currentYear,state.currentMonth);
   if(!state.completions[mk]) state.completions[mk]={};
-  if(state.completions[mk][taskId]){ delete state.completions[mk][taskId]; saveCompletion(mk,taskId,null); }
-  else { const data={by:state.currentUser,at:new Date().toISOString(),notes:''}; state.completions[mk][taskId]=data; saveCompletion(mk,taskId,data); }
+  const ck=compKey(taskId,day);
+  if(state.completions[mk][ck]){ delete state.completions[mk][ck]; saveCompletion(mk,ck,null); }
+  else { const data={by:state.currentUser,at:new Date().toISOString(),notes:''}; state.completions[mk][ck]=data; saveCompletion(mk,ck,data); }
   saveLocal(); render(); if(state.selectedDate) openPanel(state.selectedDate);
 }
 
