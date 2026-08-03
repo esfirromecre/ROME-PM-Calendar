@@ -383,6 +383,10 @@ const DEFAULT_PROJECTS = [
   { id:'p27', name:'Update Marketing Brochure', category:'marketing', status:'inprog', priority:'high', property:'', source:'Chat', notes:'Priority flagged by team' },
   { id:'p28', name:'Update Marketing Materials', category:'marketing', status:'todo', priority:'medium', property:'', source:'Task Doc', notes:'' },
   { id:'p29', name:'Track Lease Deal - Woodmere Rd', category:'marketing', status:'inprog', priority:'high', property:'Woodmere Rd', source:'Chat', notes:'' },
+  // INSURANCE RENEWALS (from Outlook audit Aug 2026)
+  { id:'p30', name:'Insurance Renewal - California Center (expires 09/21/2026)', category:'legal', status:'todo', priority:'urgent', property:'8887 Folsom Blvd', source:'Outlook', notes:'Policy CCP-1349045. Insured: Mahaveer LLC. Carrier: Century Surety Company. Broker: Inszone Insurance Services / RT Specialty, 3001 Douglas Blvd Ste 320, Roseville CA 95661' },
+  { id:'p31', name:'Insurance Renewal - Sutter Square (expires 09/24/2026)', category:'legal', status:'todo', priority:'urgent', property:'2901 K Street', source:'Outlook', notes:'Policy details not listed in the calendar event - confirm carrier and broker with Inszone' },
+  { id:'p32', name:'Insurance Renewal - The Brickyard (expires 12/30/2026)', category:'legal', status:'todo', priority:'medium', property:'Brickyard Shopping Center', source:'Outlook', notes:'Policy 57SBABM2VEP. Insured: The Brickyard, LLC - 4006/4010/4012/4014 Foothills Blvd, Roseville CA 95747. Carrier: Hartford Underwriters. Broker: Inszone Insurance Services, 2721 Citrus Road Suite A, Rancho Cordova. Reminder fires 09/30' },
 ];
 
 const DEFAULT_TASKS = [
@@ -398,36 +402,36 @@ const DEFAULT_TASKS = [
   { id:'m06', name:'1st Automatic Late Fee (% Owed-Month)', category:'financial', schedule:{type:'fixed',day:7}, property:'', notes:'Auto-posted in Yardi' },
   { id:'m07', name:'REMINDER - Ground Lease Payment Due - 2901 K St', category:'financial', schedule:{type:'fixed',day:8}, property:'2901 K Street', notes:'Verify sufficient funds' },
   { id:'m08', name:'REMINDER - Monthly Distributions - Brickyard', category:'financial', schedule:{type:'fixed',day:8}, property:'Brickyard Shopping Center', notes:'Accounting & Owner distributions' },
-  { id:'m09', name:'Check PG&E Electric Bill - Broadway/Placerville', category:'operations', schedule:{type:'fixed',day:8}, property:'1323-1353 Broadway, Placerville', notes:'Acct #2907293542-1' },
+  { id:'m09', name:'Check PG&E Electric Bill - Broadway/Placerville', category:'operations', schedule:{type:'nth-weekday',n:2,weekday:5}, property:'1323-1353 Broadway, Placerville', notes:'Acct #2907293542-1' },
   // === 10th-12th ===
   { id:'m10', name:'Mortgage Payment Due - 8300 Fair Oaks Blvd (Canterbury)', category:'financial', schedule:{type:'fixed',day:10}, property:'8300 Fair Oaks Blvd', notes:'Pay via Yardi' },
   { id:'m11', name:'Check City of Sacramento Utility - 910 Florin Rd', category:'operations', schedule:{type:'fixed',day:10}, property:'910 Florin Rd', notes:'Acct #8631953539' },
   { id:'m12', name:'BRK Retail Sales - Collect & Enter', category:'reporting', schedule:{type:'fixed',day:10}, property:'Brickyard Shopping Center', notes:'Collect missing reports, enter into Yardi Retail Setup' },
   { id:'m13', name:'Financial Package Cover Letters', category:'reporting', schedule:{type:'fixed',day:10}, property:'', notes:'All properties' },
   { id:'m14', name:'Complete Bank Statement Reconciliation - All 6 Properties', category:'financial', schedule:{type:'fixed',day:11}, property:'', notes:'Run in Yardi Breeze' },
-  { id:'m15', name:'BRK Gross Sales Report Follow-Up', category:'reporting', schedule:{type:'fixed',day:11}, property:'Brickyard Shopping Center', notes:'' },
-  { id:'m16', name:'Check PG&E Gas Bill - 2901 K St / Dhir Capital', category:'operations', schedule:{type:'fixed',day:11}, property:'2901 K Street', notes:'Acct #3914267225-0' },
+  { id:'m15', name:'BRK Gross Sales Report Follow-Up', category:'reporting', schedule:{type:'nth-weekday',n:2,weekday:1}, property:'Brickyard Shopping Center', notes:'' },
+  { id:'m16', name:'Check PG&E Gas Bill - 2901 K St / Dhir Capital', category:'operations', schedule:{type:'nth-weekday',n:2,weekday:1}, property:'2901 K Street', notes:'Acct #3914267225-0' },
   { id:'m17', name:'Check PG&E Invoices - Broadway & Greenhaven', category:'operations', schedule:{type:'fixed',day:11}, property:'Broadway & Greenhaven', notes:'' },
   { id:'m18', name:'Check Tenant Ledger - Late Fees (2nd round)', category:'operations', schedule:{type:'fixed',day:11}, property:'', notes:'Yardi - check late tenants, make notes in Word doc' },
   // === MID MONTH (13th-16th) ===
   { id:'m19', name:'Management Invoice Calculations & Summary', category:'reporting', schedule:{type:'fixed',day:13}, property:'', notes:'' },
-  { id:'m20', name:'Monthly Variance Report - Property Budgets', category:'reporting', schedule:{type:'fixed',day:14}, property:'', notes:'Pull from Yardi, flag 5%+ variances' },
+  { id:'m20', name:'Monthly Variance Report - Property Budgets', category:'reporting', schedule:{type:'nth-weekday',n:2,weekday:4}, property:'', notes:'Pull from Yardi, flag 5%+ variances' },
   { id:'m21', name:'Ground Lease Payment Due - 2901 K St', category:'financial', schedule:{type:'fixed',day:15}, property:'2901 K Street', notes:'Pay via Yardi' },
   { id:'m22', name:'Post Charges for All 8 Accounts in Yardi', category:'financial', schedule:{type:'fixed',day:15}, property:'', notes:'' },
   { id:'m23', name:'Issue Management Packages by the 16th', category:'reporting', schedule:{type:'fixed',day:15}, property:'', notes:'All properties' },
   { id:'m24', name:'Send Variance Summary to Sam', category:'reporting', schedule:{type:'fixed',day:15}, property:'', notes:'Internal review before owner reports' },
   // === MID-LATE MONTH (17th-22nd) ===
   { id:'m25', name:'Check Citrus Heights Water Bill', category:'operations', schedule:{type:'fixed',day:17}, property:'Citrus Heights Plaza', notes:'Acct #18889-0044070' },
-  { id:'m26', name:'Mortgage Payment - Citrus Heights Plaza', category:'financial', schedule:{type:'fixed',day:18}, property:'Citrus Heights Plaza', notes:'Pay via Yardi' },
+  { id:'m26', name:'Mortgage Payment - Citrus Heights Plaza', category:'financial', schedule:{type:'nth-weekday',n:3,weekday:1}, property:'Citrus Heights Plaza', notes:'Pay via Yardi' },
   { id:'m27', name:'REMINDER - Mortgage Payment Due - 2901 K St', category:'financial', schedule:{type:'fixed',day:20}, property:'2901 K Street', notes:'Verify sufficient funds' },
-  { id:'m28', name:'Email - Foothill Honey Donuts - Monthly Charges', category:'operations', schedule:{type:'fixed',day:22}, property:'Foothill', notes:'' },
+  { id:'m28', name:'Email - Foothill Honey Donuts - Monthly Charges', category:'operations', schedule:{type:'nth-weekday',n:4,weekday:5}, property:'Foothill', notes:'' },
   // === LATE MONTH (25th-27th) ===
   { id:'m29', name:'Post Monthly Rent Charges for Tenants', category:'financial', schedule:{type:'fixed',day:25}, property:'', notes:'All properties in Yardi' },
-  { id:'m30', name:'Ask PNC for Brickyard Mortgage Statement', category:'financial', schedule:{type:'fixed',day:25}, property:'Brickyard Shopping Center', notes:'Email michelle.wilkins@pnc.com' },
+  { id:'m30', name:'Ask PNC for Brickyard Mortgage Statement', category:'financial', schedule:{type:'nth-weekday',n:4,weekday:1}, property:'Brickyard Shopping Center', notes:'Email michelle.wilkins@pnc.com' },
   { id:'m31', name:'Check Consolidated Communications Bill', category:'operations', schedule:{type:'fixed',day:25}, property:'4006 & 4010 Foothills Blvd, Roseville', notes:'Acct #916-784-1143/0' },
-  { id:'m32', name:'Check City of Sacramento Utility - 2901 K St', category:'operations', schedule:{type:'fixed',day:25}, property:'2901 K Street', notes:'Acct #7706457893' },
+  { id:'m32', name:'Check City of Sacramento Utility - 2901 K St', category:'operations', schedule:{type:'nth-weekday',n:4,weekday:1}, property:'2901 K Street', notes:'Acct #7706457893' },
   { id:'m33', name:'Mortgage Payment Due - 2901 K St', category:'financial', schedule:{type:'fixed',day:27}, property:'2901 K Street', notes:'Pay via Yardi' },
-  { id:'m34', name:'Check El Dorado Disposal Bill', category:'operations', schedule:{type:'fixed',day:27}, property:'', notes:'Acct #4030-6214404 & 4030-6214403' },
+  { id:'m34', name:'Check El Dorado Disposal Bill', category:'operations', schedule:{type:'nth-weekday',n:1,weekday:1}, property:'', notes:'Acct #4030-6214404 & 4030-6214403' },
   // === END OF MONTH (28th-31st) ===
   { id:'m35', name:'REMINDER - Mortgage Payment Due - 3830 Northgate Blvd', category:'financial', schedule:{type:'fixed',day:28}, property:'3830 Northgate Blvd', notes:'Due next month - verify funds' },
   { id:'m36', name:'REMINDER - Mortgage Payment Due - Greenhaven Plaza', category:'financial', schedule:{type:'fixed',day:28}, property:'Greenhaven Plaza', notes:'Due next month - verify funds' },
@@ -444,10 +448,22 @@ const DEFAULT_TASKS = [
 
   // === NEW PROPERTY ===
   { id:'m42', name:'Check Sacramento County Utility - 2300 Longport Dr', category:'operations', schedule:{type:'fixed',day:10}, property:'2300 Longport Dr', notes:'Acct #50007374998 - Call (916) 875-5555' },
+  // === ADDED FROM OUTLOOK AUDIT (Aug 2026) ===
+  { id:'m43', name:'Sutter Square - Mortgage Payment (Input & Pay via Yardi)', category:'financial', schedule:{type:'fixed',day:15}, property:'Sutter Square Galleria', notes:'Recurs monthly on the 15th - input into Yardi and pay via Yardi' },
+  { id:'m44', name:'Check SMUD Electric Bill - 910 Florin Rd', category:'operations', schedule:{type:'nth-weekday',n:2,weekday:2}, property:'910 Florin Rd', notes:'Acct #6515859 - 2nd Tuesday' },
+  { id:'m45', name:'Check City of Sacramento Utilities - 3830 Northgate Blvd', category:'operations', schedule:{type:'last-weekday',weekday:3}, property:'3830 Northgate Blvd', notes:'Last Wednesday of the month' },
+  { id:'m46', name:'Email April - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'', notes:'Send personally each month once charges are posted' },
+  { id:'m47', name:'Email Suzanne Kern - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'', notes:'Suzanne.Kern@rsconst.com - send personally each month once charges are posted' },
+  { id:'m48', name:'Email Foothill Donuts - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'Foothill', notes:'Send personally each month once charges are posted' },
   // === BIRTHDAYS (annual) ===
   { id:'b1', name:'Birthday - Ulysses Laman', category:'admin', schedule:{type:'annual',month:6,day:14}, property:'', notes:'Happy Birthday Ulysses!' },
   { id:'b2', name:'Birthday - Chase Burke', category:'admin', schedule:{type:'annual',month:7,day:3}, property:'', notes:'Happy Birthday Chase!' },
   { id:'b3', name:'Birthday - Brooks Borror', category:'admin', schedule:{type:'annual',month:7,day:19}, property:'', notes:'Happy Birthday Brooks!' },
+  { id:'b4', name:'Birthday - Michael Pearson', category:'admin', schedule:{type:'annual',month:8,day:11}, property:'', notes:'Happy Birthday Michael!' },
+  { id:'b5', name:'Birthday - Dave Carlsen', category:'admin', schedule:{type:'annual',month:9,day:8}, property:'', notes:'Happy Birthday Dave!' },
+  { id:'b6', name:'Birthday - Gretchen Tobin', category:'admin', schedule:{type:'annual',month:9,day:18}, property:'', notes:'Happy Birthday Gretchen!' },
+  // === HOLIDAYS ===
+  { id:'h1', name:'Labor Day - Office Closed', category:'admin', schedule:{type:'annual-nth',month:9,n:1,weekday:1}, property:'', notes:'1st Monday of September - office closed' },
 ];
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -594,6 +610,8 @@ function getTaskDueDates(task, y, m) {
   if (s.type==='nth-weekday') { const d=getNthWeekday(y,m,s.n,s.weekday); return d?[d]:[]; }
   if (s.type==='weekly') return getAllWeekdayDates(y, m, s.weekday);
   if (s.type==='annual') return (s.month===(m+1)) ? [s.day] : [];
+  if (s.type==='annual-nth') { if (s.month!==(m+1)) return []; const d=getNthWeekday(y,m,s.n,s.weekday); return d?[d]:[]; }
+  if (s.type==='last-weekday') { const last=new Date(y,m+1,0); const back=(last.getDay()-s.weekday+7)%7; return [last.getDate()-back]; }
   if (s.type==='range') return [s.start];
   return [];
 }
