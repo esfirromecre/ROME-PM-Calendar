@@ -387,13 +387,20 @@ const DEFAULT_PROJECTS = [
   { id:'p30', name:'Insurance Renewal - California Center (expires 09/21/2026)', category:'legal', status:'todo', priority:'urgent', property:'8887 Folsom Blvd', source:'Outlook', notes:'Policy CCP-1349045. Insured: Mahaveer LLC. Carrier: Century Surety Company. Broker: Inszone Insurance Services / RT Specialty, 3001 Douglas Blvd Ste 320, Roseville CA 95661' },
   { id:'p31', name:'Insurance Renewal - Sutter Square (expires 09/24/2026)', category:'legal', status:'todo', priority:'urgent', property:'2901 K Street', source:'Outlook', notes:'Policy details not listed in the calendar event - confirm carrier and broker with Inszone' },
   { id:'p32', name:'Insurance Renewal - The Brickyard (expires 12/30/2026)', category:'legal', status:'todo', priority:'medium', property:'Brickyard Shopping Center', source:'Outlook', notes:'Policy 57SBABM2VEP. Insured: The Brickyard, LLC - 4006/4010/4012/4014 Foothills Blvd, Roseville CA 95747. Carrier: Hartford Underwriters. Broker: Inszone Insurance Services, 2721 Citrus Road Suite A, Rancho Cordova. Reminder fires 09/30' },
+  // MOVED OFF THE CALENDAR GRID (were set as monthly recurring by mistake)
+  { id:'p33', name:'Loom Video: Record "Run monthly rent charges" training', category:'operations', status:'todo', priority:'medium', property:'', source:'Calendar', notes:'One-time - was a recurring calendar task' },
+  { id:'p34', name:'Train Claude on Loom Videos', category:'operations', status:'todo', priority:'medium', property:'', source:'Calendar', notes:'One-time - was a recurring calendar task' },
+  { id:'p35', name:'Copy PM page from Capital Rivers website', category:'marketing', status:'todo', priority:'medium', property:'', source:'Calendar', notes:'One-time - was a recurring calendar task' },
+  { id:'p36', name:'Look into FedEx ONE RATE cost for shipping', category:'operations', status:'todo', priority:'low', property:'', source:'Calendar', notes:'One-time - was a recurring calendar task' },
 ];
 
 const DEFAULT_TASKS = [
   // === WEEKLY RECURRING ===
-  { id:'w1', name:'PM Meeting - AR Overview', category:'admin', schedule:{type:'weekly',weekday:1}, property:'', notes:'Every Monday 9:00 AM' },
-  { id:'w2', name:'Reminder: Run AP for Property Management', category:'operations', schedule:{type:'weekly',weekday:2}, property:'', notes:'Every Tuesday - all day' },
-  { id:'w3', name:'PM Meeting - General Overview', category:'admin', schedule:{type:'weekly',weekday:3}, property:'', notes:'Every Wednesday 9:00 AM' },
+  { id:'w3', name:"PM Meeting - Properties & To-Do's", category:'admin', schedule:{type:'weekly',weekday:2}, property:'', notes:'Every Tuesday 9:00 AM - 2901 K St Ste 306 + Teams' },
+  { id:'w4', name:'REMINDER - Send PM Meeting Summary', category:'admin', schedule:{type:'weekly',weekday:2}, property:'', notes:'Tuesday ~10:15 AM - right after the PM meeting wraps' },
+  { id:'w2', name:'Reminder: Run AP for Property Management', category:'operations', schedule:{type:'weekly',weekday:3}, property:'', notes:'Every Wednesday - all day' },
+  { id:'w1', name:'PM Meeting - AR & AP', category:'admin', schedule:{type:'weekly',weekday:4}, property:'', notes:'Every Thursday 9:00 AM - Teams' },
+  { id:'w5', name:'Friday To-Do Reply - Team Replies All in Color', category:'admin', schedule:{type:'weekly',weekday:5}, property:'', notes:'Friday 2:00 PM - reply all to Tuesday summary, line by line' },
   // === MONTHLY - EARLY MONTH (1st-5th) ===
   { id:'m03', name:'Reminder: Mortgage Payment Due by 10th - Canterbury (8300 Fair Oaks)', category:'financial', schedule:{type:'fixed',day:3}, property:'8300 Fair Oaks Blvd', notes:'Verify sufficient funds' },
   { id:'m04', name:'Mortgage Payment Due - Brickyard Shopping Center', category:'financial', schedule:{type:'fixed',day:5}, property:'Brickyard Shopping Center', notes:'Pay via Yardi' },
@@ -401,7 +408,7 @@ const DEFAULT_TASKS = [
   { id:'m05', name:'Check Tenant Ledger - Late Fees (1st round)', category:'operations', schedule:{type:'fixed',day:6}, property:'', notes:'Yardi - check late tenants, make notes in Word doc' },
   { id:'m06', name:'1st Automatic Late Fee (% Owed-Month)', category:'financial', schedule:{type:'fixed',day:7}, property:'', notes:'Auto-posted in Yardi' },
   { id:'m07', name:'REMINDER - Ground Lease Payment Due - 2901 K St', category:'financial', schedule:{type:'fixed',day:8}, property:'2901 K Street', notes:'Verify sufficient funds' },
-  { id:'m08', name:'REMINDER - Monthly Distributions - Brickyard', category:'financial', schedule:{type:'fixed',day:8}, property:'Brickyard Shopping Center', notes:'Accounting & Owner distributions' },
+  { id:'m08', name:'REMINDER - Monthly Distributions (Accounting & Owner) - Marcia G. Maiten Living Trust - The Brickyard', category:'financial', schedule:{type:'fixed',day:8}, property:'Brickyard Shopping Center', notes:'Accounting & Owner distributions' },
   { id:'m09', name:'Check PG&E Electric Bill - Broadway/Placerville', category:'operations', schedule:{type:'nth-weekday',n:2,weekday:5}, property:'1323-1353 Broadway, Placerville', notes:'Acct #2907293542-1' },
   // === 10th-12th ===
   { id:'m10', name:'Mortgage Payment Due - 8300 Fair Oaks Blvd (Canterbury)', category:'financial', schedule:{type:'fixed',day:10}, property:'8300 Fair Oaks Blvd', notes:'Pay via Yardi' },
@@ -433,8 +440,8 @@ const DEFAULT_TASKS = [
   { id:'m33', name:'Mortgage Payment Due - 2901 K St', category:'financial', schedule:{type:'fixed',day:27}, property:'2901 K Street', notes:'Pay via Yardi' },
   { id:'m34', name:'Check El Dorado Disposal Bill', category:'operations', schedule:{type:'nth-weekday',n:1,weekday:1}, property:'', notes:'Acct #4030-6214404 & 4030-6214403' },
   // === END OF MONTH (28th-31st) ===
-  { id:'m35', name:'REMINDER - Mortgage Payment Due - 3830 Northgate Blvd', category:'financial', schedule:{type:'fixed',day:28}, property:'3830 Northgate Blvd', notes:'Due next month - verify funds' },
-  { id:'m36', name:'REMINDER - Mortgage Payment Due - Greenhaven Plaza', category:'financial', schedule:{type:'fixed',day:28}, property:'Greenhaven Plaza', notes:'Due next month - verify funds' },
+  { id:'m35', name:'REMINDER - Mortgage Payment Due - 3830 Northgate Blvd', category:'financial', schedule:{type:'last-weekday',weekday:4}, property:'3830 Northgate Blvd', notes:'Last Thursday - due next month, verify funds' },
+  { id:'m36', name:'REMINDER - Mortgage Payment Due - Greenhaven Plaza', category:'financial', schedule:{type:'last-weekday',weekday:4}, property:'Greenhaven Plaza', notes:'Last Thursday - due next month, verify funds' },
   { id:'m37', name:'Reminder: Mortgage Payment by 5th - Brickyard', category:'financial', schedule:{type:'fixed',day:29}, property:'Brickyard Shopping Center', notes:'Due next month - verify funds' },
   { id:'m38', name:'Run Manual 2nd Late (% Owed-Total)', category:'financial', schedule:{type:'last-day'}, property:'', notes:'Last day of month' },
   { id:'m39', name:'Check Republic Services Bill - Multiple Properties', category:'operations', schedule:{type:'last-day'}, property:'Sutter Square, CA Center, 3830 Northgate, Citrus Heights', notes:'' },
@@ -450,11 +457,14 @@ const DEFAULT_TASKS = [
   { id:'m42', name:'Check Sacramento County Utility - 2300 Longport Dr', category:'operations', schedule:{type:'fixed',day:10}, property:'2300 Longport Dr', notes:'Acct #50007374998 - Call (916) 875-5555' },
   // === ADDED FROM OUTLOOK AUDIT (Aug 2026) ===
   { id:'m43', name:'Sutter Square - Mortgage Payment (Input & Pay via Yardi)', category:'financial', schedule:{type:'fixed',day:15}, property:'Sutter Square Galleria', notes:'Recurs monthly on the 15th - input into Yardi and pay via Yardi' },
-  { id:'m44', name:'Check SMUD Electric Bill - 910 Florin Rd', category:'operations', schedule:{type:'nth-weekday',n:2,weekday:2}, property:'910 Florin Rd', notes:'Acct #6515859 - 2nd Tuesday' },
+  { id:'m44', name:'Check SMUD Electric Bill - 910 Florin Rd', category:'operations', schedule:{type:'nth-weekday',n:3,weekday:1}, property:'910 Florin Rd', notes:'Acct #6515859 - 3rd Monday' },
   { id:'m45', name:'Check City of Sacramento Utilities - 3830 Northgate Blvd', category:'operations', schedule:{type:'last-weekday',weekday:3}, property:'3830 Northgate Blvd', notes:'Last Wednesday of the month' },
   { id:'m46', name:'Email April - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'', notes:'Send personally each month once charges are posted' },
   { id:'m47', name:'Email Suzanne Kern - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'', notes:'Suzanne.Kern@rsconst.com - send personally each month once charges are posted' },
   { id:'m48', name:'Email Foothill Donuts - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'Foothill', notes:'Send personally each month once charges are posted' },
+  // === ADDED FROM OUTLOOK AUDIT (Sep 2026) ===
+  { id:'m50', name:'Review - Monthly Budget-vs-Actual Reports for All PM Properties', category:'reporting', schedule:{type:'fixed',day:10}, property:'', notes:'Internal review of all PM property BvA reports' },
+  { id:'m49', name:'Check PG&E Gas Bill - 910 Florin Rd', category:'operations', schedule:{type:'nth-weekday',n:1,weekday:3}, property:'910 Florin Rd', notes:'1st Wednesday of the month' },
   // === BIRTHDAYS (annual) ===
   { id:'b1', name:'Birthday - Ulysses Laman', category:'admin', schedule:{type:'annual',month:6,day:14}, property:'', notes:'Happy Birthday Ulysses!' },
   { id:'b2', name:'Birthday - Chase Burke', category:'admin', schedule:{type:'annual',month:7,day:3}, property:'', notes:'Happy Birthday Chase!' },
@@ -462,6 +472,7 @@ const DEFAULT_TASKS = [
   { id:'b4', name:'Birthday - Michael Pearson', category:'admin', schedule:{type:'annual',month:8,day:11}, property:'', notes:'Happy Birthday Michael!' },
   { id:'b5', name:'Birthday - Dave Carlsen', category:'admin', schedule:{type:'annual',month:9,day:8}, property:'', notes:'Happy Birthday Dave!' },
   { id:'b6', name:'Birthday - Gretchen Tobin', category:'admin', schedule:{type:'annual',month:9,day:18}, property:'', notes:'Happy Birthday Gretchen!' },
+  { id:'b7', name:'Birthday - Stan Yevtushenko', category:'admin', schedule:{type:'annual',month:10,day:15}, property:'', notes:'Happy Birthday Stan!' },
   // === HOLIDAYS ===
   { id:'h1', name:'Labor Day - Office Closed', category:'admin', schedule:{type:'annual-nth',month:9,n:1,weekday:1}, property:'', notes:'1st Monday of September - office closed' },
 ];
