@@ -462,6 +462,8 @@ const DEFAULT_TASKS = [
   { id:'m46', name:'Email April - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'', notes:'Send personally each month once charges are posted' },
   { id:'m47', name:'Email Suzanne Kern - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'', notes:'Suzanne.Kern@rsconst.com - send personally each month once charges are posted' },
   { id:'m48', name:'Email Foothill Donuts - Tenant Ledger & Balance Due', category:'operations', schedule:{type:'fixed',day:25}, property:'Foothill', notes:'Send personally each month once charges are posted' },
+  // === SELF-MAINTENANCE ===
+  { id:'m51', name:'PM Calendar Audit - Claude reconciles app vs Outlook', category:'admin', schedule:{type:'fixed',day:1}, property:'', notes:'Runs automatically on the 1st ~8 AM Pacific. Claude messages you the findings - nothing to do unless it flags something.' },
   // === ADDED FROM OUTLOOK AUDIT (Sep 2026) ===
   { id:'m50', name:'Review - Monthly Budget-vs-Actual Reports for All PM Properties', category:'reporting', schedule:{type:'fixed',day:10}, property:'', notes:'Internal review of all PM property BvA reports' },
   { id:'m49', name:'Check PG&E Gas Bill - 910 Florin Rd', category:'operations', schedule:{type:'nth-weekday',n:1,weekday:3}, property:'910 Florin Rd', notes:'1st Wednesday of the month' },
